@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123b35">
+<meta name="description" content="An offline-friendly mobile GIS georeferencing learning and fieldwork companion.">
+<link rel="manifest" href="manifest.webmanifest">
+<title>GeoReference Lab</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#home" aria-label="GeoReference Lab home"><span class="brand-icon">⌖</span><span><b>GeoReference Lab</b><small>GIS FIELD COMPANION</small></span></a>
+  <button id="themeBtn" class="round-btn" aria-label="Toggle dark mode">☼</button>
+</header>
+<main>
+<section id="home" class="view active">
+  <div class="hero">
+    <div class="eyebrow">LEARN · PRACTISE · VALIDATE</div>
+    <h1>Bring your map<br><em>into the real world.</em></h1>
+    <p>A practical mobile workspace for georeferencing lessons, ground control points and accuracy checks.</p>
+    <div class="hero-buttons"><button class="btn lime" data-go="maplab">Open Map Lab <span>→</span></button><button class="btn glass" data-go="learn">Learn the workflow</button></div>
+    <div class="hero-map" aria-hidden="true"><div class="gridlines"></div><div class="contour one"></div><div class="contour two"></div><span class="map-pin p1">＋</span><span class="map-pin p2">＋</span><span class="map-pin p3">＋</span><span class="map-target">⌖</span><small>09°04′ N</small></div>
+  </div>
+  <div class="metric-grid">
+    <div class="metric"><b id="homePoints">0</b><span>Control points</span></div>
+    <div class="metric"><b id="homeChecks">0%</b><span>Checklist complete</span></div>
+    <div class="metric"><b id="homeProjects">0</b><span>Saved projects</span></div>
+  </div>
+  <div class="section-title"><div><span class="eyebrow">YOUR WORKSPACE</span><h2>What do you want to do?</h2></div></div>
+  <div class="action-grid">
+    <button class="action-card" data-go="maplab"><span class="action-icon">▧</span><b>Map Lab</b><small>Load an image and manage GCPs</small><span class="arrow">↗</span></button>
+    <button class="action-card" data-go="accuracy"><span class="action-icon">⌁</span><b>Accuracy tools</b><small>Calculate residuals and RMSE</small><span class="arrow">↗</span></button>
+    <button class="action-card" data-go="learn"><span class="action-icon">▤</span><b>Learn GIS</b><small>Workflow and short quiz</small><span class="arrow">↗</span></button>
+    <button class="action-card" data-go="projects"><span class="action-icon">▣</span><b>Projects</b><small>Save and restore your work</small><span class="arrow">↗</span></button>
+  </div>
+  <div class="notice"><span>✦</span><div><b>Important to know</b><p>This app helps you prepare and assess control points. It does not warp a raster or produce a georeferenced GeoTIFF. Use QGIS Georeferencer or ArcGIS Pro for that processing step.</p></div></div>
+</section>
+
+<section id="maplab" class="view">
+  <div class="page-heading"><span class="eyebrow">WORKSPACE 01</span><h1>Map Lab</h1><p>Preview a scanned map, record control points and export your point list.</p></div>
+  <div class="panel">
+    <div class="panel-head"><div><h3>Source image</h3><p>Choose a JPG, PNG or WebP map image.</p></div><span class="pill">LOCAL FILE</span></div>
+    <label class="upload-zone" for="imageInput"><span class="upload-symbol">↑</span><b>Tap to upload a map image</b><small>Your image stays in this browser session and is not uploaded to a server.</small><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp"></label>
+    <div id="imageStage" class="image-stage hidden"><img id="mapPreview" alt="Uploaded map preview"><div class="image-overlay-label">SOURCE IMAGE PREVIEW</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><div><h3>Ground control points</h3><p>Record known coordinates for identifiable features.</p></div><span id="pointBadge" class="pill">0 POINTS</span></div>
+    <form id="gcpForm" class="form-grid">
+      <label>Point ID<input id="pointId" required placeholder="GCP-01"></label>
+      <label>Image X (pixel)<input id="pixelX" type="number" step="any" placeholder="Optional"></label>
+      <label>Image Y (pixel)<input id="pixelY" type="number" step="any" placeholder="Optional"></label>
+      <label>Known X / Easting / Longitude<input id="coordX" required step="any" placeholder="e.g. 7.4921"></label>
+      <label>Known Y / Northing / Latitude<input id="coordY" required step="any" placeholder="e.g. 9.0765"></label>
+      <label class="wide">Feature / notes<input id="pointNote" placeholder="Road junction, grid intersection…"></label>
+      <button class="btn primary wide" type="submit">＋ Add control point</button>
+    </form>
+    <div class="table-scroll"><table><thead><tr><th>ID</th><th>Pixel X</th><th>Pixel Y</th><th>Known X</th><th>Known Y</th><th>Notes</th><th></th></tr></thead><tbody id="pointRows"><tr><td colspan="7" class="empty">No control points yet.</td></tr></tbody></table></div>
+    <div class="inline-actions"><span id="pointCount">0 control points</span><div><button class="btn small secondary" id="importCsvBtn" type="button">Import CSV</button><input id="csvInput" class="hidden" type="file" accept=".csv,text/csv"><button class="btn small secondary" id="exportCsvBtn" type="button">Export CSV ↓</button></div></div>
+    <p class="helper">CSV import accepts headers such as <code>id,x,y,known_x,known_y,notes</code>. Coordinates should use one consistent CRS and unit system.</p>
+  </div>
+</section>
+
+<section id="accuracy" class="view">
+  <div class="page-heading"><span class="eyebrow">WORKSPACE 02</span><h1>Accuracy tools</h1><p>Calculate residuals and root mean square error from paired reference and estimated coordinates.</p></div>
+  <div class="notice amber"><span>!</span><div><b>Use matching coordinate systems</b><p>Enter reference and estimated coordinates in the same CRS and units. RMSE is meaningful only when the paired observations are comparable.</p></div></div>
+  <div class="panel">
+    <div class="panel-head"><div><h3>Residual calculator</h3><p>Add at least one coordinate pair.</p></div></div>
+    <form id="residualForm" class="form-grid">
+      <label>Point ID<input id="resId" required placeholder="Check-01"></label>
+      <label>Reference X<input id="refX" type="number" step="any" required></label>
+      <label>Reference Y<input id="refY" type="number" step="any" required></label>
+      <label>Estimated X<input id="estX" type="number" step="any" required></label>
+      <label>Estimated Y<input id="estY" type="number" step="any" required></label>
+      <button class="btn primary wide" type="submit">Calculate point residual</button>
+    </form>
+    <div class="table-scroll"><table><thead><tr><th>ID</th><th>ΔX</th><th>ΔY</th><th>Radial error</th><th></th></tr></thead><tbody id="resRows"><tr><td colspan="5" class="empty">No checks entered yet.</td></tr></tbody></table></div>
+    <div class="rmse-card"><div><span class="eyebrow">ROOT MEAN SQUARE ERROR</span><strong id="rmseValue">—</strong><small id="rmseUnit">Enter coordinate pairs to calculate.</small></div><div class="rmse-icon">∑</div></div>
+    <div class="inline-actions"><span id="resCount">0 validation points</span><button class="btn small secondary" id="clearResiduals" type="button">Clear all</button></div>
+    <p class="helper">RMSE 2D = √[Σ(ΔX² + ΔY²) / n]. This is a summary of the entered coordinate differences, not an automatic accuracy certification. Keep independent check points separate from transformation GCPs where possible.</p>
+  </div>
+</section>
+
+<section id="learn" class="view">
+  <div class="page-heading"><span class="eyebrow">WORKSPACE 03</span><h1>Learn GIS</h1><p>A concise workflow with practical guidance and a knowledge check.</p></div>
+  <div class="lesson-list">
+    <details open><summary><span>01</span> Prepare the source map</summary><p>Use a clear scan with the full map frame, grid ticks, labels and neatline visible. A tilted phone photograph can introduce perspective distortion.</p></details>
+    <details><summary><span>02</span> Choose the coordinate reference system</summary><p>Identify the original map CRS if known. Select a suitable target CRS for the study area and intended measurements. Confirm datum, projection and units.</p></details>
+    <details><summary><span>03</span> Add well-distributed GCPs</summary><p>Use stable, identifiable features or grid intersections. Distribute points around the image, including corners and the centre. Avoid clustering all points in one area.</p></details>
+    <details><summary><span>04</span> Select a transformation</summary><p>Affine (often called polynomial order 1) can model translation, rotation, scale and shear. Higher-order polynomials and thin plate spline can model more distortion but can also warp areas between points.</p></details>
+    <details><summary><span>05</span> Validate independently</summary><p>Inspect residuals, overlay the output with trusted reference data, and check known features throughout the map. Low training-point RMSE alone does not prove accuracy everywhere.</p></details>
+  </div>
+  <div class="panel quiz-panel">
+    <div class="panel-head"><div><span class="eyebrow">KNOWLEDGE CHECK</span><h3>Quick GIS quiz</h3><p>Answer the questions, then check your score.</p></div></div>
+    <form id="quizForm">
+      <fieldset><legend>1. What is a GCP used for?</legend><label class="option"><input type="radio" name="q1" value="a"> To decorate a map layout</label><label class="option"><input type="radio" name="q1" value="b"> To match an image location with a known ground coordinate</label><label class="option"><input type="radio" name="q1" value="c"> To compress a raster file</label></fieldset>
+      <fieldset><legend>2. Where should GCPs generally be placed?</legend><label class="option"><input type="radio" name="q2" value="a"> All in one corner</label><label class="option"><input type="radio" name="q2" value="b"> Only along one edge</label><label class="option"><input type="radio" name="q2" value="c"> Across the map, including edges and centre</label></fieldset>
+      <fieldset><legend>3. What does RMSE tell you?</legend><label class="option"><input type="radio" name="q3" value="a"> A summary of coordinate errors for the entered points</label><label class="option"><input type="radio" name="q3" value="b"> That every pixel is perfectly accurate</label><label class="option"><input type="radio" name="q3" value="c"> Which CRS is always best</label></fieldset>
+      <button class="btn primary" type="submit">Check my answers</button>
+    </form>
+    <div id="quizResult" class="quiz-result hidden" role="status"></div>
+  </div>
+  <div class="panel"><h3>Further reading</h3><p class="muted">For actual raster transformation, use a desktop GIS tool.</p><div class="resource-links"><a href="https://docs.qgis.org/" target="_blank" rel="noopener">QGIS documentation ↗</a><a href="https://pro.arcgis.com/" target="_blank" rel="noopener">ArcGIS Pro documentation ↗</a></div></div>
+</section>
+
+<section id="projects" class="view">
+  <div class="page-heading"><span class="eyebrow">WORKSPACE 04</span><h1>Projects</h1><p>Save the current control-point and validation work on this device, or export a backup file.</p></div>
+  <div class="panel">
+    <form id="projectForm" class="project-form"><label>Project name<input id="projectName" required placeholder="e.g. Katsina map sheet"></label><button class="btn primary" type="submit">Save current project</button></form>
+    <div class="inline-actions"><span>Saved locally in this browser</span><button id="backupBtn" class="btn secondary small" type="button">Export backup JSON ↓</button><label class="btn secondary small file-button" for="restoreInput">Restore backup ↑<input id="restoreInput" class="hidden" type="file" accept=".json,application/json"></label></div>
+    <div id="projectList" class="project-list"><div class="empty-projects">No saved projects yet.</div></div>
+    <p class="helper">Browser storage can be cleared by your device or browser settings. Export backups regularly. Source images are not included in project backups.</p>
+  </div>
+</section>
+</main>
+<nav class="bottom-nav" aria-label="Main navigation">
+  <button class="nav-item active" data-go="home"><span>⌂</span><small>Home</small></button>
+  <button class="nav-item" data-go="maplab"><span>⌖</span><small>Map Lab</small></button>
+  <button class="nav-item" data-go="accuracy"><span>⌁</span><small>Accuracy</small></button>
+  <button class="nav-item" data-go="learn"><span>▤</span><small>Learn</small></button>
+  <button class="nav-item" data-go="projects"><span>▣</span><small>Projects</small></button>
+</nav>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body></html>

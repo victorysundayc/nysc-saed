@@ -1,0 +1,10 @@
+{
+  "name": "GeoReference Lab",
+  "short_name": "GeoRef Lab",
+  "description": "Offline-friendly GIS georeferencing learning and control point companion",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f3f7f4",
+  "theme_color": "#123b35",
+  "icons": []
+}
